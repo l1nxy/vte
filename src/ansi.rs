@@ -694,6 +694,9 @@ pub trait Handler {
     /// Report text area size in pixels.
     fn text_area_size_pixels(&mut self) {}
 
+    /// Report cell size in pixels.
+    fn cell_size_pixels(&mut self) {}
+
     /// Report text area size in characters.
     fn text_area_size_chars(&mut self) {}
 
@@ -1738,6 +1741,7 @@ where
             ('T', []) => handler.scroll_down(next_param_or(1) as usize),
             ('t', []) => match next_param_or(1) as usize {
                 14 => handler.text_area_size_pixels(),
+                16 => handler.cell_size_pixels(),
                 18 => handler.text_area_size_chars(),
                 22 => handler.push_title(),
                 23 => handler.pop_title(),
@@ -2044,6 +2048,7 @@ mod tests {
         charset: StandardCharset,
         attr: Option<Attr>,
         identity_reported: bool,
+        cell_size_reported: bool,
         color: Option<Rgb>,
         reset_colors: Vec<usize>,
     }
@@ -2066,6 +2071,10 @@ mod tests {
             self.identity_reported = true;
         }
 
+        fn cell_size_pixels(&mut self) {
+            self.cell_size_reported = true;
+        }
+
         fn reset_state(&mut self) {
             *self = Self::default();
         }
@@ -2086,6 +2095,7 @@ mod tests {
                 charset: StandardCharset::Ascii,
                 attr: None,
                 identity_reported: false,
+                cell_size_reported: false,
                 color: None,
                 reset_colors: Vec::new(),
             }
@@ -2128,6 +2138,18 @@ mod tests {
         parser.advance(&mut handler, bytes);
 
         assert!(handler.identity_reported);
+    }
+
+    #[test]
+    fn parse_csi_16t_reports_cell_size_pixels() {
+        let bytes: &[u8] = b"\x1b[16t";
+
+        let mut parser = Processor::<TestSyncHandler>::new();
+        let mut handler = MockHandler::default();
+
+        parser.advance(&mut handler, bytes);
+
+        assert!(handler.cell_size_reported);
     }
 
     #[test]
