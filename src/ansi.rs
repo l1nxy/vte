@@ -994,6 +994,8 @@ pub enum ClearMode {
     Above,
     /// Clear entire terminal.
     All,
+    /// Clear entire terminal, preserving viewport in scrollback (kitty `CSI 22 J`).
+    AllAndScrollback,
     /// Clear 'saved' lines (scrollback).
     Saved,
 }
@@ -1621,6 +1623,7 @@ where
                     1 => ClearMode::Above,
                     2 => ClearMode::All,
                     3 => ClearMode::Saved,
+                    22 => ClearMode::AllAndScrollback,
                     _ => {
                         unhandled!();
                         return;
